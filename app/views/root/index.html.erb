@@ -1,0 +1,63 @@
+<h1>ソートテスト</h1>
+
+<select id="sort-selector" name="sort">
+  <option value=""></option>
+  <option value="high">年齢高い順</option>
+  <option value="low">年齢低い順</option>
+</select>
+
+
+<div id="users">
+  <% @users.each do |user| %>
+    <div class="user">
+      <p><%= user.name %>:<%= user.age %></p>
+    </div>
+  <% end %>
+</div>
+
+<script>
+$(function(){
+  $("#sort-selector").on("change", function(){
+    // selectしたものをコンソールに表示
+    console.log($(this).val())
+
+    const sortValue = $(this).val()
+    $.ajax({
+      url: '/user/sort', //指定のurlに送る。route.rb参照
+      type: 'post',
+      dataType: 'json',
+      data: {
+        sortValue: sortValue //送るデータを記述。これでrails側ではparams[:sortValue]で値を取得できる
+      },
+      beforeSend: function(xhr){
+        //これはおまじない。セキュリティ的な意味
+        xhr.setRequestHeader('X-CSRF-Token',$('meta[name="csrf-token"]').attr('content'))
+      }
+    })
+    .done((e)=>{
+      console.log(e)
+      //eの中にusers格納されている
+
+      //非同期で表示物を変えるにはJavaScriptでゴリゴリ描く
+      $("#users").empty()
+
+      e.forEach((value)=>{
+        //valueの中にuserが格納されている
+        $("#users").append('<div class="user"><p>'+value.name+':'+value.age+'</p></div>')
+      })
+
+    })
+  })
+})
+</script>
+
+<style>
+  .user{
+    border: 1px solid #aaa;
+    border-radius: 8px;
+    margin: 8px;
+    padding: 8px;
+    width: 200px;
+    text-align: center;
+  }
+</style>
